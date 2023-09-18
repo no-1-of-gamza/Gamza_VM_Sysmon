@@ -1,6 +1,6 @@
 import subprocess
 
-# vm 리스트 가져오기
+# vm 리스트 확인
 def list_vm() -> list:
     vboxmanage_path = "C:\\Program Files\\Oracle\\VirtualBox\\vboxmanage.exe"
     vboxmanage_cmd = [vboxmanage_path]
@@ -46,6 +46,19 @@ def stop_vm(vm_name) -> bool:
     print(result)
 
     return result.returncode
+
+# 스냅샷 리스트 확인
+def list_snapshot(vm_name) -> list:
+    vboxmanage_path = "C:\\Program Files\\Oracle\\VirtualBox\\vboxmanage.exe"
+    vboxmanage_cmd = [vboxmanage_path]
+
+    command = f"snapshot {vm_name} list --details"      # --details옵션(세부정보)은 제외 가능
+    vboxmanage_cmd = vboxmanage_cmd[0:1] + command.split()
+
+    result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
+    print(result)
+
+    return result
 
 # 스냅샷 생성
 def snapshot_vm(vm_name, snapshot_name) -> bool:
