@@ -23,7 +23,7 @@ def start_vm(vm_name) -> bool:
     type_num = input("Do you want to run a virtual machine with a gui type? <yes/no>\n>> ")
     if type_num == 'yes':       # gui
         type = 'gui'
-    else:                   # gui를 띄우지 않음
+    else:                       # gui를 띄우지 않음
         type = 'headless'
 
     command = f"startvm {vm_name} --type {type}"
