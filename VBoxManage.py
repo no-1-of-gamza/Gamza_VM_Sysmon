@@ -14,10 +14,36 @@ def list_vm() -> list:
     vm_list = parse_vm_list(vm_list)
     return vm_list
 
+# 실행중인 vm 리스트 확인
+def list_runningvms() -> list:
+    vboxmanage_path = "C:\\Program Files\\Oracle\\VirtualBox\\vboxmanage.exe"
+    vboxmanage_cmd = [vboxmanage_path]
+
+    command = "list runningvms"
+    vboxmanage_cmd = vboxmanage_cmd[0:1] + command.split()
+        
+    result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
+    running_vm_list = result.stdot.split("\n")[:-1]
+
+    running_vm_list = parse_running_vm_list(running_vm_list)    
+    return running_vm_list
+
 def parse_vm_list(vm_list) -> list:
     parsed_list = []
     
     for item in vm_list:
+        name_range = list(filter(lambda x: item[x] == '\"', range(len(item))))
+        uid_start = item.index("{")
+        uid_end = item.index("}")
+        
+        parsed_list.append([item[name_range[0]+1:name_range[1]], item[uid_start+1:uid_end]])
+    
+    return parsed_list
+
+def parse_running_vm_list(running_vm_list) -> list:
+    parsed_list = []
+
+    for item in running_vm_list:
         name_range = list(filter(lambda x: item[x] == '\"', range(len(item))))
         uid_start = item.index("{")
         uid_end = item.index("}")
