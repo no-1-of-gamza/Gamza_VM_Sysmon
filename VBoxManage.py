@@ -9,9 +9,22 @@ def list_vm() -> list:
     vboxmanage_cmd = vboxmanage_cmd[0:1] + command.split()
         
     result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
-    print(result)
+    vm_list = result.stdout.split("\n")[:-1]
     
-    return result
+    vm_list = parse_vm_list(vm_list)
+    return vm_list
+
+def parse_vm_list(vm_list) -> list:
+    parsed_list = []
+    
+    for item in vm_list:
+        name_range = list(filter(lambda x: item[x] == '\"', range(len(item))))
+        uid_start = item.index("{")
+        uid_end = item.index("}")
+        
+        parsed_list.append([item[name_range[0]+1:name_range[1]], item[uid_start+1:uid_end]])
+    
+    return parsed_list
 
 # vm 시작
 def start_vm(vm_name) -> bool:
@@ -56,9 +69,20 @@ def list_snapshot(vm_name) -> list:
     vboxmanage_cmd = vboxmanage_cmd[0:1] + command.split()
 
     result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
-    print(result)
+    snapshot_list = result.stdout.split(")")[:-1]
+    
+    snapshot_list = parse_snapshot_list(snapshot_list)
+    return snapshot_list
 
-    return result
+def parse_snapshot_list(snapshot_list) -> list:
+    parsed_list = []
+    
+    for item in snapshot_list:
+        separator_index = list(filter(lambda x: item[x] == ':', range(len(item))))
+        
+        parsed_list.append([item[separator_index[0]+2:separator_index[1]-6], item[separator_index[1]+1:]])
+    
+    return parsed_list
 
 # 스냅샷 생성
 def snapshot_vm(vm_name, snapshot_name) -> bool:
