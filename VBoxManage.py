@@ -123,6 +123,19 @@ def snapshot_vm(vm_name, snapshot_name) -> bool:
 
     return result.returncode
 
+# 스냅샷 삭제
+def snapshot_delete(vm_name, snapshot_name) -> bool:
+    vboxmanage_path = "C:\\Program Files\\Oracle\\VirtualBox\\vboxmanage.exe"
+    vboxmanage_cmd = [vboxmanage_path]
+
+    command = f"snapshot {vm_name} delete {snapshot_name}"
+    vboxmanage_cmd = vboxmanage_cmd[0:1] + command.split()
+
+    result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
+    print(result)
+
+    return result.returncode
+
 # 스냅샷 시점으로 롤백
 def rollback_vm(vm_name, snapshot_name) -> bool:
     vboxmanage_path = "C:\\Program Files\\Oracle\\VirtualBox\\vboxmanage.exe"
