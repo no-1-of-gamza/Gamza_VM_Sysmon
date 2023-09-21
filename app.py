@@ -215,9 +215,9 @@ class Main:
         
     def get_status(self):
         if self.analyzing:
-            print("Analyzing: {}".format("Running"))
+            print("Analyzing: "+"\033[32m"+"Running"+"\033[0m")
         else:
-            print("Analyzing: {}".format("Stopped"))
+            print("Analyzing: "+"\033[31m"+"Stopped"+"\033[0m")
         
         print("\nTarget VM: {}".format(self.target_vm))
         print("Target Malware: {}\n".format(self.target_malware))
