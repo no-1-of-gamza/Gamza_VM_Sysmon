@@ -10,7 +10,7 @@ class Main:
         self.target_malware = "None"
         self.analyzing = False
         
-        print("Initializing sandbox...please wait......")
+        print("\nInitializing sandbox...please wait......")
         self.init_status()
         
     def SignalHandler_SIGINT(self, SignalNumber, Frame):
@@ -181,12 +181,15 @@ class Main:
             is_error = -1
             
             snapshot_list = VBoxManage.list_snapshot(vm_name)
-            for snapshot in snapshot_list:
-                snapshot_name = snapshot[0]
-                if snapshot_name != "init_snapshot":
-                    is_error = VBoxManage.snapshot_delete(vm_name, snapshot_name)
-                    if is_error:
-                        print(f"Failed to clean snapshot ({vm_name}:{snapshot_name}). Check your machine is correct\n")
+            if len(snapshot_list) == 1 and snapshot_list[0][0] == "init_snapshot":
+                is_error = 0
+            else:
+                for snapshot in snapshot_list:
+                    snapshot_name = snapshot[0]
+                    if snapshot_name != "init_snapshot":
+                        is_error = VBoxManage.snapshot_delete(vm_name, snapshot_name)
+                        if is_error:
+                            print(f"Failed to clean snapshot ({vm_name}:{snapshot_name}). Check your machine is correct\n")
             
             while is_error == -1: pass # wait for end
             if not is_error:
@@ -221,6 +224,10 @@ class Main:
         
         print("\nTarget VM: {}".format(self.target_vm))
         print("Target Malware: {}\n".format(self.target_malware))
+        
+        running_vms = VBoxManage.list_runningvms()
+        if self.analyzing and self.target_vm not in running_vms:
+            print("WARNING: Target virtual machine is stopped.\nThis can lead to incomplete results when the analysis is stopped.\n")
         
     def set_vm(self, vm_name):
         if self.analyzing:
@@ -333,10 +340,13 @@ class Main:
             print("There is no analysis in progress\n")
             return
         
-        is_error = VBoxManage.stop_vm(self.target_vm)
-        if is_error:
-            print("Failed to stop VM. Please try again\n")
-            return
+        running_vms = VBoxManage.list_runningvms()
+        if self.target_vm in running_vms:
+            is_error = VBoxManage.stop_vm(self.target_vm)
+            if is_error:
+                print("Failed to stop VM. Please check your virtualbox\n")
+                return
+        print("Stop VM...")
         
         # 1. stop log view (host)
         
@@ -344,9 +354,10 @@ class Main:
         is_error = VBoxManage.rollback_vm(self.target_vm, "init_snapshot")
         if is_error:
             print("Failed to initialize vm. Please check your virtualbox\n")
+        print("Initialize used VM...")
         
         self.analyzing = False
-        print("Analysis has been stopped. All states are reset\n")
+        print("Analysis has been stopped. All states are initialized\n")
 
 
 if __name__ == "__main__":
