@@ -1,3 +1,5 @@
+import os
+
 class WinlogbeatYML:
     def __init__(self, host_ip):
         self.elasticsearch_host = f"http://{host_ip}:9200"
@@ -50,9 +52,10 @@ processors:
   - add_cloud_metadata: ~
 """
 
-        with open("Winlogbeat.yml", "w") as kibana_file:
+        with open("winlogbeat.yml", "w") as kibana_file:
             kibana_file.write(Winlogbeat_config)
 
-        print("Winlogbeat.yml 파일이 생성되었습니다.")
-
-        return True
+        if os.path.exists("./winlogbeat.yml"):
+            return True
+        else:
+            return False

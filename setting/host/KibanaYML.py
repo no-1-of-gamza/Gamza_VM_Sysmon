@@ -1,4 +1,5 @@
 import socket
+import os
 
 class KibanaYML:
     def __init__(self):
@@ -25,6 +26,7 @@ elasticsearch.password: "111111"
         with open("kibana.yml", "w") as kibana_file:
             kibana_file.write(kibana_config)
 
-        print("Kibana.yml 파일이 생성되었습니다.")
-
-        return True
+        if os.path.exists("./kibana.yml"):
+            return True
+        else:
+            return False
