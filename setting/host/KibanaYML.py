@@ -10,7 +10,7 @@ class KibanaYML:
             return local_ip
         except Exception as e:
             print(f"IP 주소를 가져오는 중 오류 발생: {e}")
-            return None
+            return False
 
     def create_config(self):
         kibana_config = f"""\
@@ -27,6 +27,4 @@ elasticsearch.password: "111111"
 
         print("Kibana.yml 파일이 생성되었습니다.")
 
-if __name__ == "__main__":
-    kibana = KibanaYML()
-    kibana.create_config()
+        return True

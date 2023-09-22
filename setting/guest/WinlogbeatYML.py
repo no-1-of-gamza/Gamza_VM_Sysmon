@@ -1,17 +1,7 @@
-import socket
-
 class WinlogbeatYML:
-    def __init__(self):
-        self.elasticsearch_host = f"http://{self.get_local_ip()}:9200"
-        self.kibana_host = f"http://{self.get_local_ip()}:5601"
-
-    def get_local_ip(self):
-        try:
-            local_ip = socket.gethostbyname(socket.gethostname())
-            return local_ip
-        except Exception as e:
-            print(f"IP 주소를 가져오는 중 오류 발생: {e}")
-            return None
+    def __init__(self, host_ip):
+        self.elasticsearch_host = f"http://{host_ip}:9200"
+        self.kibana_host = f"http://{host_ip}:5601"
 
     def create_config(self):
         Winlogbeat_config = f"""\
@@ -65,6 +55,4 @@ processors:
 
         print("Winlogbeat.yml 파일이 생성되었습니다.")
 
-if __name__ == "__main__":
-    Winlogbeat = WinlogbeatYML()
-    Winlogbeat.create_config()
+        return True
