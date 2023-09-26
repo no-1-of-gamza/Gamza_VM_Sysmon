@@ -3,6 +3,7 @@ import sys
 import os
 
 from controller import VBoxManage
+from controller.commander import request_vm
 
 class Main:
     def __init__(self):
@@ -327,10 +328,21 @@ class Main:
             return
         
         print("Start VM...")
-        
+
+        rvm = request_vm()
         # 1. upload malware to vm
+        rvm.upload(self.target_malware)
+        malware_name = self.target_malware.split('/')[-1]
+        print(f'{malware_name} upload complete')
+        
         # 2. start sysmon & event log collector (guest, host)
+        command = 'sysmon.exe -i'
+        rvm.commander(command)
+        
         # 3. execute malware
+        command = self.target_maleware
+        rvm.commander(command)
+        print(f'{malware_name} run complete')
         
         self.analyzing = True
         print("Everything is ready. The analysis begins\n")
