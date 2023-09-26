@@ -21,6 +21,13 @@ elasticsearch.hosts: ["{self.elasticsearch_host}"]
 elasticsearch.requestTimeout: 180000
 elasticsearch.username: "kibana"
 elasticsearch.password: "111111"
+
+logging.root.level: info
+logging.appenders.default:
+  type: file
+  fileName: C:\\kibana\\logs\\kibana.log
+  layout:
+    type: json
 """
 
         with open("kibana.yml", "w") as kibana_file:
