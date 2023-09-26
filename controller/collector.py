@@ -94,7 +94,6 @@ class Kibana:
             if not msg:
                 break
             
-            print(msg.decode('utf-8'))
             if "Kibana is starting" in msg.decode('utf-8'):
                 return True
         
