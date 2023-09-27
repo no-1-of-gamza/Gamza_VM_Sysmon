@@ -329,7 +329,10 @@ class Main:
         
         print("Start VM...")
 
-        rvm = request_vm()
+        port = 8080
+        vm_name = self.target_vm
+        rvm = request_vm(port, vm_name)
+        
         # 1. upload malware to vm
         rvm.upload(self.target_malware)
         malware_name = self.target_malware.split('/')[-1]
