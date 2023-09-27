@@ -3,6 +3,68 @@ import subprocess
 import base64
 import json
 import socket
+import os, sys
+from shutil import copyfile
+
+import WinlogbeatYML
+
+class Winlogbeat:
+    def __init__(self, host_ip):
+        self.process = None
+        self.host_ip = host_ip
+    
+    def status(self):
+        if self.process == None:
+            print("Winlogbeat didn't start yet")
+            return False
+        
+        if self.process.poll() == None:
+            return True
+        else:
+            return False
+    
+    def start(self):
+        yml = WinlogbeatYML.WinlogbeatYML(self.host_ip)
+        is_error = yml.create_config()
+        if not is_error:
+            print("Failed to create kibana configuration file. Try again\n")
+            return False
+        
+        current_path = os.path.join(os.getcwd(), "winlogbeat.yml")
+        try:
+            copyfile(current_path,'C:\\winlogbeat\\winlogbeat.yml')
+        except Exception:
+            print("Failed to move winlogbeat.yml. Please check your winlogbeat.yml file in winlogbeat folder\n")
+            return False
+
+        try:
+            args = ["C:\\winlogbeat\\winlogbeat.exe", "-c", "C:\\winlogbeat\\winlogbeat.yml", "-e"]
+            self.process = subprocess.Popen(args, stdout=subprocess.PIPE)
+        except Exception:
+            print("Failed to start winlogbeat. Please check your winlogbeat in C drive\n")
+            return False
+        
+        print("ready to start winlogbeat...")
+        
+        while True:
+            msg = self.process.stdout.readline()
+            if not msg:
+                break
+            
+            if "Connecting to backoff" in msg.decode('utf-8')["message"]:
+                return True
+        
+        return False
+    
+    def stop(self):
+        if self.process == None:
+            print("Winlogbeat didn't start yet")
+            return False
+        
+        result = self.process.terminate()
+        self.process = None
+        
+        return result
 
 # POST 요청: 명령어 수행
 def exec_command(command) -> (bool, str):
