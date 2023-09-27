@@ -6,6 +6,22 @@ This tool supports analysis of one virtual environment at a time. You can run an
 - Windows 7
 
 ## Installation
-1. 
-2. 
-3. 
+1. Download `VirtualBox`.
+2. Clone this project
+    ```bash
+    $ git clone https://github.com/no-1-of-gamza/Gamza_VM_Sysmon.git
+    ```
+3. Download guest VM files from the links below.
+    - Windows 10: []()
+    - Windows 7: []()
+4. Unzip that zip files and move both folders to the path below.
+    - `C:\Program Files\Oracle\VirtualBox\`
+5. Download the zip files of Elasticsearch and Kibana from the links below.
+    - Elasticsearch: []()
+    - Kibana: []()
+6. Unzip that zip files and move both folders to C drive. Each folder's path should be as follows.
+    - Elasticsearch: C:\\elasticsearch\\
+    - Kibana: C:\\kibana\\
+
+### Notice
+The Virtual Machine runs on its own within the program when the analysis starts and automatically terminates when the analysis ends, so do not run it yourself.
