@@ -66,7 +66,6 @@ class Winlogbeat:
         
         return result
 
-# POST 요청: 명령어 수행
 def exec_command(command) -> (bool, str):
     try:
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
@@ -76,7 +75,6 @@ def exec_command(command) -> (bool, str):
         return False
     return True, result.stdout
 
-# 가상머신에 파일 저장: 외부 -> 가상머신
 def save_file(file_path, file_data) -> bool:
     try:
         with open(file_path, 'wb') as f:
@@ -86,7 +84,6 @@ def save_file(file_path, file_data) -> bool:
         return False
     return True
 
-# 클라이언트에 파일 다운로드: 가상머신 -> 외부
 def load_file(file_path) -> (bool, bytes):
     try:
         with open(file_path, 'rb') as f:
@@ -97,7 +94,6 @@ def load_file(file_path) -> (bool, bytes):
     return True, data
 
 class MyRequestHandler(BaseHTTPRequestHandler):
-    # GET 요청
     def do_GET(self):
         if self.path == '/':
             self.send_response(200)
@@ -105,7 +101,6 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b'Hello, this is a GET request!\n')
         
-        # load_file 호출
         elif self.path.startswith('/download'):
             try:
                 file_name = self.path[len('/download/'):]
@@ -130,7 +125,6 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b'Server Error')
 
-    # POST 요청
     def do_POST(self):
         if self.path == '/command':
             content_length = int(self.headers['Content-Length'])
@@ -155,7 +149,6 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 self.end_headers()
                 self.wfile.write(b'Bad Request: Invalid JSON data')
 
-        # save_file 호출
         elif self.path == '/upload':
             try:
                 content_length = int(self.headers['Content-Length'])
@@ -185,9 +178,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
             self.end_headers()
             self.wfile.write(b'404 Not Found')
 
-# 서버 실행
 def run_server(port):
-    # 서버의 ip를 가져옴
     host_name = socket.gethostname()
     ip_address = socket.gethostbyname(host_name)
 
@@ -200,7 +191,6 @@ if __name__ == '__main__':
     port = 8080
     run_server(port)
 
-    # 클라이언트 요청에 따른 수행 루트
     handler = MyRequestHandler
 
     if handler.command == 'GET':
