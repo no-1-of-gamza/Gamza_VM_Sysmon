@@ -65,8 +65,12 @@ class request_vm:
 
     def commander(self, command):
         data = {'command': '', 'arg': ''}
-        data['command'] = command.split()[0]
-        data['arg'] = command.split()[1]
+        command = command.split()
+        for i in range(len(command)):
+            if i == 0:
+                data['command'] = command[i]
+            else:
+                data['arg'] = command[i]
 
         headers = {'Content-type': 'application/json'}
         response = requests.post(f'http://{self.vm_IP}:{self.port}/command', data=json.dumps(data), headers=headers)
