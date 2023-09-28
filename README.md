@@ -15,7 +15,7 @@ This tool supports analysis of one virtual environment at a time. You can run an
     - Windows 10: []()
     - Windows 7: []()
 4. Unzip that zip files and move both folders to the path below.
-    - `C:\Program Files\Oracle\VirtualBox\`
+    - `C:\Users\<username>\VirtualBox VMs\`
 5. Download the zip files of Elasticsearch and Kibana from the links below.
     - Elasticsearch: []()
     - Kibana: []()
