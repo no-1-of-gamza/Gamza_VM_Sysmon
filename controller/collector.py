@@ -36,7 +36,8 @@ class Elasticsearch:
             if not msg:
                 break
             
-            if "starting ..." in msg.decode('utf-8'):
+            decoded_msg = msg.decode('utf-8')
+            if "starting ..." in decoded_msg:
                 return True
         
         return False
@@ -94,7 +95,8 @@ class Kibana:
             if not msg:
                 break
             
-            if "Kibana is starting" in msg.decode('utf-8'):
+            decoded_msg = msg.decode('utf-8')
+            if "Kibana is starting" in decoded_msg or "Kibana is currently running" in decoded_msg:
                 return True
         
         return False
