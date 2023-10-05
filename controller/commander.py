@@ -6,9 +6,10 @@ import subprocess
 
 class request_vm:
     def __init__(self, port, vm_name):
-        # 가상머신의 서버 포트와 ip 설정
         self.port = port
         self.vm_name = vm_name
+        self.vm_IP = '127.0.0.1'
+
         vboxmanage_path = "C:\\Program Files\\Oracle\\VirtualBox\\vboxmanage.exe"
         vboxmanage_cmd = [vboxmanage_path]
         network_adapter = "/VirtualBox/GuestInfo/Net/0/V4/IP"
@@ -27,14 +28,12 @@ class request_vm:
 
     def server_check(self):
         response = requests.get(f'http://{self.vm_IP}:{self.port}/')
-        print('GET Response:')
-        print(response.text)
+        if 'Hello' in response.text:
+            return True
+        return False
 
     def download(self, file_name) -> bool:
         response = requests.get(f'http://{self.vm_IP}:{self.port}/download/{file_name}')
-        print('GET Response:')
-        print(response.content)
-
         if response.status_code == 200:
             try:
                 file_data = response.content
@@ -55,9 +54,7 @@ class request_vm:
                 file_data = base64.b64encode(f.read()).decode('utf-8')
             data = {'file_name': file_path, 'file_data': file_data}
             response = requests.post(f'http://{self.vm_IP}:{self.port}/upload', json=data)
-        
-            print('\nPOST Response:')
-            print(response.text)
+            
         except Exception as e:
             print(f'Error: {str(e)}')
             return False
@@ -65,38 +62,16 @@ class request_vm:
 
     def commander(self, command):
         data = {'command': '', 'arg': ''}
-        command = command.split()
-        for i in range(len(command)):
-            if i == 0:
-                data['command'] = command[i]
-            else:
-                data['arg'] = command[i]
+        command_parts = command.split()
+        
+        data['command'] = command_parts[0]
+        data['arg'] = " ".join(command_parts[1:])
 
         headers = {'Content-type': 'application/json'}
         response = requests.post(f'http://{self.vm_IP}:{self.port}/command', data=json.dumps(data), headers=headers)
 
-        print('\nPOST Response:')
         result = response.json()
         result = (result['data']).encode('ascii')
         result = (base64.b64decode(result)).decode('utf-8')
-        print(result)
-
-if __name__ == '__main__':
-    port = '8080'
-    vm_name = '9project'
-    Rvm = request_vm(port, vm_name)
-    
-    # server check test
-    Rvm.server_check()
-    
-    # command test
-    #command = 'ipconfig -all'
-    #Rvm.commander(command)
-    
-    # downlaod test
-    #file_name = 'python.exe'
-    #Rvm.download(file_name)
-
-    # upload test
-    #file_path = r'C:\RawCopy.exe'
-    #Rvm.upload(file_path)
+        
+        return result
