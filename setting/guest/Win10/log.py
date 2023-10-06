@@ -1,6 +1,6 @@
 class Log:
     def __init__(self):
-        self.log_file = open("agent.log.txt", "w")
+        self.log_file = open("C:\\Users\\user\\Documents\\agent\\agent.log.txt", "w")
     
     def write(self, msg):
         try:
