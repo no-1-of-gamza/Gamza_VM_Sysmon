@@ -1,8 +1,10 @@
 import signal
 import sys
 import os
+import time
 
-from controller import VBoxManage, collector
+from controller import VBoxManage
+from controller.collector import Elasticsearch, Kibana
 from controller.commander import request_vm
 
 class Main:
@@ -167,7 +169,7 @@ class Main:
         # 1. Check any vm are current running(analyzing).
         running_vms = VBoxManage.list_runningvms()
         for i in range(len(running_vms)):
-            vm_name = running_vms[i][0]
+            vm_name = running_vms[i]
             
             is_error = VBoxManage.stop_vm(vm_name)
             if is_error:
@@ -340,30 +342,50 @@ class Main:
         vm_name = self.target_vm
         rvm = request_vm(port, vm_name)
         
-        # 1. upload malware to vm
-        rvm.upload(self.target_malware)
-        malware_name = self.target_malware.split('/')[-1]
-        print(f'{malware_name} upload complete')
+        while not rvm.server_check():
+            time.sleep(1)
         
-        # 2-1. start sysmon & event log collector (guest)
-        command = 'sysmon.exe -i'
-        rvm.commander(command)
+        is_success = rvm.upload(self.target_malware)
+        if not is_success:
+            print("Failed to upload malware file.")
+        else:
+            print("Upload executable file...")
         
-        # 2-2. start event log collector (host)
-        self.elasticsearch = collector.Elasticsearch()
-        is_started = self.elasticsearch.start()
-        if not is_started:
+        is_success = rvm.config_beat()
+        if not is_success:
+            print("Failed to create Winlogbeat config file.")
+        
+        is_success = rvm.start_beat()
+        if not is_success:
+            print("Failed to start Winlogbeat.")
+        else:
+            print("Start Winlogbeat...")
+        
+        self.elasticsearch = Elasticsearch()
+        is_success = self.elasticsearch.start()
+        if not is_success:
             print("Failed to start Elasticsearch. Please check \'C:\elasticsearch\logs\elasticsearch.txt\'")
+        else:
+            print("Start ElasticSearch...")
         
-        self.kibana = collector.Kibana()
-        is_started = self.kibana.start()
-        if not is_started:
-            print("Failed to start Elasticsearch. Please check \'C:\kibana\logs\kibana.txt\'")
+        self.kibana = Kibana()
+        is_success = self.kibana.start()
+        if not is_success:
+            print("Failed to start Kibana. Please check \'C:\kibana\logs\kibana.txt\'")
+        else:
+            print("Start Kibana...")
         
-        # 3. execute malware
-        command = self.target_maleware
-        rvm.commander(command)
-        print(f'{malware_name} run complete')
+        result = rvm.command_result("C:\Sysmon\Sysmon.exe -i -accepteula")
+        if "Sysmon started." not in result:
+            print("Failed to start Sysmon.")
+        else:
+            print("Start Sysmon...")
+        
+        is_success = rvm.command_execute(self.target_malware)
+        if not is_success:
+            print("Failed to execute malware")
+        else:
+            print("Execute malware...")
         
         self.analyzing = True
         print("Everything is ready. The analysis begins\n")
@@ -381,12 +403,16 @@ class Main:
                 return
         print("Stop VM...")
         
-        # 1. stop log view (host)
-        self.elasticsearch.stop()
-        self.kibana.stop()
+        is_stopped = self.elasticsearch.stop()
+        if not is_stopped:
+            print("Failed to stop Elasticsearch. Please check the process status")
+        
+        is_stopped = self.kibana.stop()
+        if not is_stopped:
+            print("Failed to stop Kibana. Please check the process status")
+
         print("Stop log system...")
         
-        # 2. rollback to initial snapshot
         is_error = VBoxManage.rollback_vm(self.target_vm, "init_snapshot")
         if is_error:
             print("Failed to initialize vm. Please check your virtualbox\n")
