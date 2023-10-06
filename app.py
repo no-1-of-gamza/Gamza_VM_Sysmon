@@ -169,7 +169,7 @@ class Main:
         # 1. Check any vm are current running(analyzing).
         running_vms = VBoxManage.list_runningvms()
         for i in range(len(running_vms)):
-            vm_name = running_vms[i][0]
+            vm_name = running_vms[i]
             
             is_error = VBoxManage.stop_vm(vm_name)
             if is_error:
