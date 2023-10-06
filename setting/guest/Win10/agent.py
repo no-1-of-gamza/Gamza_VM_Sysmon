@@ -20,15 +20,25 @@ def SignalHandler_SIGINT(SignalNumber, Frame):
     log.close()
     sys.exit(0)
 
-def exec_command(command):
+def command_blocked(command):
     global log
     
     try:
         result = subprocess.run(command, shell=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, text=True)
     except Exception as e:
         log.write("Error: "+str(e)+"\n")
-        return False
+        return False, ""
     return True, result.stdout
+
+def command_nonblocked(command):
+    global log
+    
+    try:
+        result = subprocess.Popen(command)
+    except Exception as e:
+        log.write("Error: "+str(e)+"\n")
+        return False
+    return True
 
 def save_file(file_path, file_data):
     global log
@@ -164,7 +174,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
     def do_POST(self):
         global log
         
-        if self.path == '/command':
+        if self.path == '/command/result':
             content_length = int(self.headers['Content-Length'])
             post_data = self.rfile.read(content_length)
             try:
@@ -172,8 +182,10 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 command = data.get('command')
                 arg = data.get('arg')
                 
+                command = self.convert_file_path(command)
+                
                 full_command = f'{command} {arg}'
-                result, command_data = exec_command(full_command)
+                result, command_data = command_blocked(full_command)
                 if result:
                     log.write("Success to execute command\n")
                     command_data = (base64.b64encode(command_data.encode('utf-8'))).decode('ascii')
@@ -194,6 +206,44 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                     self.wfile.write(b'500')
                     
             except json.JSONDecodeError:
+                log.write("Invalid JSON data\n")
+                
+                self.send_response(400)
+                self.send_header('Content-type', 'text/html')
+                self.end_headers()
+                self.wfile.write(b'Bad Request: Invalid JSON data')
+                
+        elif self.path == '/command/execute':
+            content_length = int(self.headers['Content-Length'])
+            post_data = self.rfile.read(content_length)
+            try:
+                data = json.loads(post_data.decode('utf-8'))
+                command = data.get('command')
+                arg = data.get('arg')
+                
+                command = self.convert_file_path(command)
+                
+                full_command = f'{command} {arg}'
+                result = command_nonblocked(full_command)
+                if result:
+                    log.write("Success to execute command\n")
+                    
+                    self.send_response(200)
+                    self.send_header('Content-type', 'application/json')
+                    self.end_headers()
+                    self.wfile.write(b'200')
+                    
+                else:
+                    log.write("Failed to execute command\n")
+                    
+                    self.send_response(500)
+                    self.send_header('Content-type', 'text/html')
+                    self.end_headers()
+                    self.wfile.write(b'500')
+                    
+            except json.JSONDecodeError:
+                log.write("Invalid JSON data\n")
+                
                 self.send_response(400)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
@@ -204,11 +254,14 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 content_length = int(self.headers['Content-Length'])
                 post_data = self.rfile.read(content_length)
                 data = json.loads(post_data.decode('utf-8'))
-                file_name = data['file_name']
+                file_path = data['file_path']
                 file_data = data['file_data']
                 file_bytes = base64.b64decode(file_data)
                 
-                if save_file(file_name, file_bytes):   
+                file_path = self.convert_file_path(file_path)
+                print("saved file path:", file_path)
+                
+                if save_file(file_path, file_bytes):   
                     log.write("Success to upload file.\n")
                      
                     self.send_response(200)
@@ -230,11 +283,24 @@ class MyRequestHandler(BaseHTTPRequestHandler):
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
                 self.wfile.write(f'Server Error: {str(e)}'.encode('utf-8'))
+                
         else:
             self.send_response(404)
             self.send_header('Content-type', 'text/html')
             self.end_headers()
             self.wfile.write(b'404 Not Found')
+    
+    def convert_file_path(self, origin_path):
+        converted_path = ""
+        
+        path_split = origin_path.split("\\")
+        if len(path_split) >= 3 and path_split[1] == "Users":
+            converted_path = os.path.expanduser('~') + "\\"
+            converted_path += "\\".join(path_split[3:])
+        else:
+            converted_path = origin_path
+        
+        return converted_path
 
 def run_server(port):
     host_name = socket.gethostname()
@@ -255,7 +321,6 @@ if __name__ == '__main__':
     run_server(port)
 
     handler = MyRequestHandler
-
     if handler.command == 'GET':
         handler.do_GET()
     elif handler.command == 'POST':
