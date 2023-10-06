@@ -2,7 +2,7 @@ import signal
 import sys
 import os
 
-from controller import VBoxManage
+from controller import VBoxManage, collector
 from controller.commander import request_vm
 
 class Main:
@@ -10,6 +10,9 @@ class Main:
         self.target_vm = "None"
         self.target_malware = "None"
         self.analyzing = False
+        
+        self.elasticsearch = None
+        self.kibana = None
         
         print("\nInitializing sandbox...please wait......")
         self.init_status()
@@ -39,9 +42,7 @@ class Main:
                     print(f"Failed to initialize VM ({vm_name}). Check your machine is correct\n")
                     continue
                 
-                # 1. execute server (agent.exe)
-                
-                # 2. take a snapshot of all vm's initial status
+                # take a snapshot of all vm's initial status
                 is_error = VBoxManage.snapshot_vm(vm_name, "init_snapshot")
                 if is_error:
                     print("Failed to take initial snapshot. Check your machine is correct\n")
@@ -112,6 +113,10 @@ class Main:
                     print("take snapshot: invalid command\n")
                     self.help()
                     continue
+                
+                if command[2] == "init_snapshot":
+                    print("take snapshot: cannot use the init snapshot name\n")
+                    continue
 
                 snapshot_name = command[2]
                 self.take_snapshot(snapshot_name)
@@ -169,6 +174,8 @@ class Main:
                 print(f"Failed to clean {vm_name} snapshots")
             
             # 1-1. stop log view (host)
+            self.elasticsearch.stop()
+            self.kibana.stop()
         
             # 1-2. Rollback all vm to initial snapshot.
             is_error = VBoxManage.rollback_vm(vm_name, "init_snapshot")
@@ -338,9 +345,20 @@ class Main:
         malware_name = self.target_malware.split('/')[-1]
         print(f'{malware_name} upload complete')
         
-        # 2. start sysmon & event log collector (guest, host)
+        # 2-1. start sysmon & event log collector (guest)
         command = 'sysmon.exe -i'
         rvm.commander(command)
+        
+        # 2-2. start event log collector (host)
+        self.elasticsearch = collector.Elasticsearch()
+        is_started = self.elasticsearch.start()
+        if not is_started:
+            print("Failed to start Elasticsearch. Please check \'C:\elasticsearch\logs\elasticsearch.txt\'")
+        
+        self.kibana = collector.Kibana()
+        is_started = self.kibana.start()
+        if not is_started:
+            print("Failed to start Elasticsearch. Please check \'C:\kibana\logs\kibana.txt\'")
         
         # 3. execute malware
         command = self.target_maleware
@@ -364,6 +382,9 @@ class Main:
         print("Stop VM...")
         
         # 1. stop log view (host)
+        self.elasticsearch.stop()
+        self.kibana.stop()
+        print("Stop log system...")
         
         # 2. rollback to initial snapshot
         is_error = VBoxManage.rollback_vm(self.target_vm, "init_snapshot")
