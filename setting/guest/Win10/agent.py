@@ -144,7 +144,7 @@ class MyRequestHandler(BaseHTTPRequestHandler):
         elif self.path.startswith('/beat/start'):
             is_success = beat_start()
             if is_success:
-                log.write("Success to create Winlogbeat config\n")
+                log.write("Success to start Winlogbeat config\n")
                 self.send_response(200)
                 self.send_header('Content-type', 'text/html')
                 self.end_headers()
