@@ -403,8 +403,14 @@ class Main:
                 return
         print("Stop VM...")
         
-        self.elasticsearch.stop()
-        self.kibana.stop()
+        is_stopped = self.elasticsearch.stop()
+        if not is_stopped:
+            print("Failed to stop Elasticsearch. Please check the process status")
+        
+        is_stopped = self.kibana.stop()
+        if not is_stopped:
+            print("Failed to stop Kibana. Please check the process status")
+
         print("Stop log system...")
         
         is_error = VBoxManage.rollback_vm(self.target_vm, "init_snapshot")

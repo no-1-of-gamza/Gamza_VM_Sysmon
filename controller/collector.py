@@ -1,29 +1,28 @@
 import subprocess
-from shutil import copyfile
 import os
 import sys
+import time
+
+from shutil import copyfile
+import psutil
 
 sys.path.append(os.path.dirname(os.path.abspath(os.path.dirname(__file__))))
 from setting.host import KibanaYML
 
 class Elasticsearch:
     def __init__(self):
-        self.process = None
+        self.pid = os.getpid()
         
     def status(self):
-        if self.process == None:
-            print("Elasticsearch didn't start yet")
-            return False
-        
-        if self.process.poll() == None:
-            return True
-        else:
-            return False
+        for proc in psutil.Process(self.pid).children(recursive=True):
+            if proc.name() == "CONTRO~1.EXE":
+                return True
+        return False
 
     def start(self):
         try:
             args = ["C:\\elasticsearch\\bin\\elasticsearch.bat"]
-            self.process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
+            process = subprocess.Popen(args, stdout=subprocess.PIPE, stderr=subprocess.STDOUT)
             
         except Exception:
             print("Failed to start elasticsearch. Please check your elasticsearch in C drive\n")
@@ -32,7 +31,7 @@ class Elasticsearch:
         print("ready to start elasticsearch...")
         
         while True:
-            msg = self.process.stdout.readline()
+            msg = process.stdout.readline()
             if not msg:
                 break
             
@@ -43,30 +42,31 @@ class Elasticsearch:
         return False
     
     def stop(self):
-        if self.process == None:
-            print("Elasticsearch didn't start yet")
-            return False
+        if not self.status():
+            print("ElasticSearch is already stopped")
+            return True
         
-        result = self.process.kill()
+        for child in psutil.Process(self.pid).children(recursive=True):
+            if child.name() == "java.exe":
+                child.kill()
+                break
+        time.sleep(5)
+        
         self.process = None
         
-        return result
+        return not self.status()
 
 class Kibana:
     def __init__(self):
-        self.process = None
+        self.pid = os.getpid()
     
     def status(self):
-        if self.process == None:
-            print("Kibana didn't start yet")
-            return False
-        
-        if self.process.poll() == None:
-            return True
-        else:
-            return False
+        for proc in psutil.Process(self.pid).children(recursive=True):
+            if proc.name() == "node.exe":
+                return True
+        return False
     
-    def start(self):
+    def config(self):
         yml = KibanaYML.KibanaYML()
         is_error = yml.create_config()
         if not is_error:
@@ -79,10 +79,17 @@ class Kibana:
         except Exception:
             print("Failed to move kibana.yml. Please check your kibana.yml file in kibana folder\n")
             return False
+        
+        return True
+    
+    def start(self):
+        is_success = self.config()
+        if not is_success:
+            return False
 
         try:
             args = ["C:\\kibana\\bin\\kibana.bat"]
-            self.process = subprocess.Popen(args, stdout=subprocess.PIPE)
+            process = subprocess.Popen(args, stdout=subprocess.PIPE)
             
         except Exception:
             print("Failed to start kibana. Please check your kibana in C drive\n")
@@ -91,7 +98,7 @@ class Kibana:
         print("ready to start kibana...")
         
         while True:
-            msg = self.process.stdout.readline()
+            msg = process.stdout.readline()
             if not msg:
                 break
             
@@ -102,12 +109,17 @@ class Kibana:
         return False
     
     def stop(self):
-        if self.process == None:
-            print("Kibana didn't start yet")
-            return False
+        if not self.status():
+            print("Kibana is already stopped")
+            return True
         
-        result = self.process.terminate()
+        for child in psutil.Process(self.pid).children(recursive=True):
+            if child.name() == "node.exe":
+                child.kill()
+                break
+        time.sleep(5)
+        
         self.process = None
         
-        return result
+        return not self.status()
     
