@@ -3,6 +3,7 @@ import json
 import base64
 import os
 import subprocess
+import socket
 
 class request_vm:
     def __init__(self, port, vm_name):
@@ -27,12 +28,15 @@ class request_vm:
             print(f"'{self.vm_name}' IP not found\n")
 
     def server_check(self):
-        response = requests.get(f'http://{self.vm_IP}:{self.port}/')
-        if 'Hello' in response.text:
-            return True
+        try:
+            response = requests.get(f'http://{self.vm_IP}:{self.port}/')
+            if 'Hello' in response.text:
+                return True
+        except requests.exceptions.ConnectTimeout:
+            return False
         return False
 
-    def download(self, file_name) -> bool:
+    def download(self, file_name):
         response = requests.get(f'http://{self.vm_IP}:{self.port}/download/{file_name}')
         if response.status_code == 200:
             try:
@@ -42,13 +46,13 @@ class request_vm:
                 with open(file_path, 'wb') as f:
                     f.write(file_data)
             except Exception as e:
-                print(f'{str(e)}')
+                print(f'Error: {str(e)}')
                 return False
             return True
         else:
             return False
 
-    def upload(self, file_path) -> bool:
+    def upload(self, file_path):
         try:
             with open(file_path, 'rb') as f:
                 file_data = base64.b64encode(f.read()).decode('utf-8')
@@ -75,3 +79,36 @@ class request_vm:
         result = (base64.b64decode(result)).decode('utf-8')
         
         return result
+    
+    def config_beat(self):
+        host_ip = self.get_my_ip()
+        try:
+            response = requests.get(f'http://{self.vm_IP}:{self.port}/beat?i={host_ip}')
+            if response.status_code == 200:
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(f'Error: {str(e)}')
+            return False
+
+    def get_my_ip(self):
+        try:
+            s = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
+            s.connect(("8.8.8.8", 80))
+            local_ip = s.getsockname()[0]
+            return local_ip
+        except Exception as e:
+            print(f"Error: Cannot get IP address: {e}")
+            return False
+        
+    def start_beat(self):
+        try:
+            response = requests.get(f'http://{self.vm_IP}:{self.port}/beat/start')
+            if response.status_code == 200:
+                return True
+            else:
+                return False
+        except Exception as e:
+            print(f'Error: {str(e)}')
+            return False
