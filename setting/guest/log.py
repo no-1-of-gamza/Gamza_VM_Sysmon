@@ -1,6 +1,8 @@
+import os
+
 class Log:
     def __init__(self):
-        self.log_file = open("C:\\Users\\user\\Documents\\agent\\agent.log.txt", "w")
+        self.log_file = open(os.path.expanduser('~')+"\\Documents\\agent\\agent.log.txt", "w")
     
     def write(self, msg):
         try:

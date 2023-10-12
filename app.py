@@ -375,8 +375,8 @@ class Main:
         else:
             print("Start Kibana...")
         
-        result = rvm.command_result("C:\Sysmon\Sysmon.exe -i -accepteula")
-        if "Sysmon started." not in result:
+        result = rvm.command_result("C:\Sysmon\Sysmon64.exe -i -accepteula")
+        if "Sysmon64 started." not in result:
             print("Failed to start Sysmon.")
         else:
             print("Start Sysmon...")
