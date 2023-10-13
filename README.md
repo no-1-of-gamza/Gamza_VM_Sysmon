@@ -14,11 +14,11 @@ This tool supports analysis of one virtual environment at a time. You can run an
 3. Download guest VM files from the links below.
     - Windows 10: []()
     - Windows 7: []()
-4. Unzip that zip files and move both folders to the path below.
-    - `C:\Users\<username>\VirtualBox VMs\`
+4. Unzip the given zip files and create guest VM at VirtualBox using the file.
+    - **Please note that the guest VM name must not have any spaces.**
 5. Download the zip files of Elasticsearch and Kibana from the links below.
-    - Elasticsearch: []()
-    - Kibana: []()
+    - Elasticsearch: [Drive Link](https://drive.google.com/file/d/1uqEk6LSiS8oB0D-VHK8b7FaKfI1OpvDI/view?usp=drive_link)
+    - Kibana: [Drive Link](https://drive.google.com/file/d/1RnYUKfG4PBdGUFsXsOQ1DnheHq9wo2cZ/view?usp=drive_link)
 6. Unzip that zip files and move both folders to C drive. Each folder's path should be as follows.
     - Elasticsearch: C:\\elasticsearch\\
     - Kibana: C:\\kibana\\
