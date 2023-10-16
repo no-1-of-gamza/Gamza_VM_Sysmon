@@ -35,7 +35,7 @@ def list_runningvms() -> list:
     vboxmanage_cmd = vboxmanage_cmd[0:1] + command.split()
         
     result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
-    running_vm_list = result.stdot.split("\n")[:-1]
+    running_vm_list = result.stdout.split("\n")[:-1]
 
     running_vm_list = parse_running_vm(running_vm_list)    
     return running_vm_list
