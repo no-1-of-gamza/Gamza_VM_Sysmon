@@ -336,7 +336,8 @@ class Main:
             print("Failed to start VM. Please try again\n")
             return
         
-        print("Start VM...")
+        print("Start VM...Please wait until starting server...")
+        time.sleep(100)
 
         port = 8080
         vm_name = self.target_vm
