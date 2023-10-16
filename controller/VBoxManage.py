@@ -60,10 +60,7 @@ def start_vm(vm_name, interface_type) -> bool:
 
     result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
 
-    if result.returncode == 0:
-        return True
-    else:
-        return False
+    return result.returncode
 
 # vm 종료
 def stop_vm(vm_name) -> bool:
@@ -75,10 +72,7 @@ def stop_vm(vm_name) -> bool:
 
     result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
 
-    if result.returncode == 0:
-        return True
-    else:
-        return False
+    return result.returncode
 
 # 스냅샷 리스트 확인
 def list_snapshot(vm_name) -> list:
@@ -114,10 +108,7 @@ def snapshot_vm(vm_name, snapshot_name) -> bool:
 
     result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
 
-    if result.returncode == 0:
-        return True
-    else:
-        return False
+    return result.returncode
 
 # 스냅샷 삭제
 def snapshot_delete(vm_name, snapshot_name) -> bool:
@@ -129,10 +120,7 @@ def snapshot_delete(vm_name, snapshot_name) -> bool:
 
     result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
 
-    if result.returncode == 0:
-        return True
-    else:
-        return False
+    return result.returncode
 
 # 스냅샷 시점으로 롤백
 def rollback_vm(vm_name, snapshot_name) -> bool:
@@ -144,7 +132,4 @@ def rollback_vm(vm_name, snapshot_name) -> bool:
 
     result = subprocess.run(vboxmanage_cmd, stdout=subprocess.PIPE, text=True)
     
-    if result.returncode == 0:
-        return True
-    else:
-        return False
+    return result.returncode
