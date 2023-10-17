@@ -322,16 +322,8 @@ class Main:
         if self.analyzing:
             print("Analysis is already in progress. Please try again after finishing\n")
             return
-        
-        interface_type = ''
-        option = input("Do you want to run a virtual machine with a gui type? <yes/no(default)>: ")
-        option = option.lower()
-        if option == 'yes' or option == 'y':
-            interface_type = 'gui'
-        else:
-            interface_type = 'headless'
             
-        is_error = VBoxManage.start_vm(self.target_vm, interface_type)
+        is_error = VBoxManage.start_vm(self.target_vm, 'gui')
         if is_error:
             print("Failed to start VM. Please try again\n")
             return
